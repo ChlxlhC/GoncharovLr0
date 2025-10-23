@@ -17,6 +17,10 @@ T GetCorrectNumber(T min, T max) {
 
 class Pipes {
 public:
+    string _name;
+    int _length, _width;
+    bool _properties;
+
     void add() {
         cout << "Vvedite nazvanie truby: ";
         getline(cin >> ws, _name);
@@ -48,30 +52,14 @@ public:
             cout << "Truba ne naidena" << endl;
         }
     }
-
-    void saveToFile(ofstream& out) {
-        out << "PIPE" << endl;
-        out << _name << endl;
-        out << _length << endl;
-        out << _width << endl;
-        out << _properties << endl;
-    }
-
-    void loadFromFile(ifstream& in) {
-        getline(in >> ws, _name);
-        in >> _length;
-        in >> _width;
-        in >> _properties;
-    }
-
-private:
-    string _name;
-    int _length, _width;
-    bool _properties;
 };
 
 class KS {
 public:
+    string _name;
+    int _quantity, _count_work;
+    bool _station_class;
+
     void add() {
         cout << "Vvedite nazvanie KS: ";
         getline(cin >> ws, _name);
@@ -103,54 +91,40 @@ public:
             cout << "KS ne naiden" << endl;
         }
     }
-
-    void saveToFile(ofstream& out) {
-        out << "KS" << endl;
-        out << _name << endl;
-        out << _quantity << endl;
-        out << _count_work << endl;
-        out << _station_class << endl;
-    }
-
-    void loadFromFile(ifstream& in) {
-        getline(in >> ws, _name);
-        in >> _quantity;
-        in >> _count_work;
-        in >> _station_class;
-    }
-
-private:
-    string _name;
-    int _quantity, _count_work;
-    bool _station_class;
 };
 
 void saveToFile(Pipes& pipe, KS& ks) {
     ofstream out("data.txt");
-    pipe.saveToFile(out);
-    ks.saveToFile(out);
-    out.close();
-    cout << "Dannye sohraneny!" << endl;
+    if (out.is_open()) {
+        out << pipe._name << endl;
+        out << pipe._length << endl;
+        out << pipe._width << endl;
+        out << pipe._properties << endl;
+        out << ks._name << endl;
+        out << ks._quantity << endl;
+        out << ks._count_work << endl;
+        out << ks._station_class << endl;
+        out.close();
+        cout << "Dannye sohraneny!" << endl;
+    }
 }
 
 void loadFromFile(Pipes& pipe, KS& ks) {
     ifstream in("data.txt");
-    if (!in.is_open()) {
+    if (in.is_open()) {
+        getline(in >> ws, pipe._name);
+        in >> pipe._length;
+        in >> pipe._width;
+        in >> pipe._properties;
+        getline(in >> ws, ks._name);
+        in >> ks._quantity;
+        in >> ks._count_work;
+        in >> ks._station_class;
+        in.close();
+        cout << "Dannye zagruzheny!" << endl;
+    } else {
         cout << "File ne naiden!" << endl;
-        return;
     }
-    
-    string type;
-    while (in >> type) {
-        if (type == "PIPE") {
-            pipe.loadFromFile(in);
-        }
-        else if (type == "KS") {
-            ks.loadFromFile(in);
-        }
-    }
-    in.close();
-    cout << "Dannye zagruzheny!" << endl;
 }
 
 int main() {
@@ -162,30 +136,14 @@ int main() {
             << "5. Redaktirovat KS\n6. Sohranit\n7. Zagruzit\n0. Vihod\nVyberite: ";
 
         switch (GetCorrectNumber(0, 7)) {
-        case 0:
-            return 0;
-        case 1: 
-            pipe.add(); 
-            break;
-        case 2: 
-            ks.add(); 
-            break;
-        case 3: 
-            pipe.View(); 
-            ks.View(); 
-            break;
-        case 4: 
-            pipe.Edit(); 
-            break;
-        case 5: 
-            ks.Edit(); 
-            break;
-        case 6:
-            saveToFile(pipe, ks);
-            break;
-        case 7: 
-            loadFromFile(pipe, ks);
-            break;
+        case 0: return 0;
+        case 1: pipe.add(); break;
+        case 2: ks.add(); break;
+        case 3: pipe.View(); ks.View(); break;
+        case 4: pipe.Edit(); break;
+        case 5: ks.Edit(); break;
+        case 6: saveToFile(pipe, ks); break;
+        case 7: loadFromFile(pipe, ks); break;
         }
     }
 }
