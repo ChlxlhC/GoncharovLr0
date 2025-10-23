@@ -53,25 +53,36 @@ public:
     void saveToFile() {
         if (!_name.empty()) {
             ofstream out("data.txt", ios::app);
-            out << "Truba:" << _name << ":" << _length << ":" << _width
-                << ":" << _properties << endl;
+            out << "Truba: " << _name << ", " << _length << ", " << _width
+                << ", " << _properties << endl;
         }
     }
 
     void loadFromFile(const string& line) {
         stringstream ss(line);
-        string type, name, length_str, width_str, prop_str;
+        string part;
         
-        getline(ss, type, ':');
-        getline(ss, name, ':');
-        getline(ss, length_str, ':');
-        getline(ss, width_str, ':');
-        getline(ss, prop_str);
+        // Парсим строку формата: "Truba: nazvanie, 100, 50, 1"
+        getline(ss, part, ':'); // Пропускаем "Truba"
+        getline(ss, part, ','); // Читаем название
+        _name = part;
+        // Убираем пробелы в начале и конце
+        _name.erase(0, _name.find_first_not_of(" "));
+        _name.erase(_name.find_last_not_of(" ") + 1);
         
-        _name = name;
-        _length = stoi(length_str);
-        _width = stoi(width_str);
-        _properties = stoi(prop_str);
+        // Читаем длину
+        getline(ss, part, ',');
+        _length = stoi(part);
+        
+        // Читаем ширину  
+        getline(ss, part, ',');
+        _width = stoi(part);
+        
+        // Читаем статус
+        getline(ss, part);
+        _properties = stoi(part);
+        
+        cout << "Zagruzhena truba: " << _name << endl;
     }
 
     bool isLoaded() const {
@@ -121,25 +132,36 @@ public:
     void saveToFile() {
         if (!_name.empty()) {
             ofstream out("data.txt", ios::app);
-            out << "KS:" << _name << ":" << _quantity << ":"
-                << _count_work << ":" << _station_class << endl;
+            out << "KS: " << _name << ", " << _quantity << ", "
+                << _count_work << ", " << _station_class << endl;
         }
     }
 
     void loadFromFile(const string& line) {
         stringstream ss(line);
-        string type, name, quant_str, work_str, class_str;
+        string part;
         
-        getline(ss, type, ':');
-        getline(ss, name, ':');
-        getline(ss, quant_str, ':');
-        getline(ss, work_str, ':');
-        getline(ss, class_str);
+        // Парсим строку формата: "KS: nazvanie, 10, 5, 1"
+        getline(ss, part, ':'); // Пропускаем "KS"
+        getline(ss, part, ','); // Читаем название
+        _name = part;
+        // Убираем пробелы в начале и конце
+        _name.erase(0, _name.find_first_not_of(" "));
+        _name.erase(_name.find_last_not_of(" ") + 1);
         
-        _name = name;
-        _quantity = stoi(quant_str);
-        _count_work = stoi(work_str);
-        _station_class = stoi(class_str);
+        // Читаем количество цехов
+        getline(ss, part, ',');
+        _quantity = stoi(part);
+        
+        // Читаем цехи в работе  
+        getline(ss, part, ',');
+        _count_work = stoi(part);
+        
+        // Читаем статус
+        getline(ss, part);
+        _station_class = stoi(part);
+        
+        cout << "Zagruzhen KS: " << _name << endl;
     }
 
     bool isLoaded() const {
@@ -160,24 +182,16 @@ void loadDataFromFile(Pipes& pipe, KS& ks) {
     }
     
     string line;
-    bool pipeLoaded = false;
-    bool ksLoaded = false;
-    
     while (getline(in, line)) {
-        if (line.find("Truba:") == 0 && !pipeLoaded) {
+        if (line.find("Truba:") != string::npos) {
             pipe.loadFromFile(line);
-            pipeLoaded = true;
-            cout << "Truba zagruzhena iz faila" << endl;
         }
-        else if (line.find("KS:") == 0 && !ksLoaded) {
+        else if (line.find("KS:") != string::npos) {
             ks.loadFromFile(line);
-            ksLoaded = true;
-            cout << "KS zagruzhen iz faila" << endl;
         }
     }
-    
-    if (!pipeLoaded) cout << "Truba ne zagruzhena iz faila" << endl;
-    if (!ksLoaded) cout << "KS ne zagruzhen iz faila" << endl;
+    in.close();
+    cout << "Zagruzka zavershena!" << endl;
 }
 
 int main() {
