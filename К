@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sstream>
 
 using namespace std;
 
@@ -50,43 +49,19 @@ public:
         }
     }
 
-    void saveToFile() {
-        if (!_name.empty()) {
-            ofstream out("data.txt", ios::app);
-            out << "Truba: " << _name << ", " << _length << ", " << _width
-                << ", " << _properties << endl;
-        }
+    void saveToFile(ofstream& out) {
+        out << "PIPE" << endl;
+        out << _name << endl;
+        out << _length << endl;
+        out << _width << endl;
+        out << _properties << endl;
     }
 
-    void loadFromFile(const string& line) {
-        stringstream ss(line);
-        string part;
-        
-        // Парсим строку формата: "Truba: nazvanie, 100, 50, 1"
-        getline(ss, part, ':'); // Пропускаем "Truba"
-        getline(ss, part, ','); // Читаем название
-        _name = part;
-        // Убираем пробелы в начале и конце
-        _name.erase(0, _name.find_first_not_of(" "));
-        _name.erase(_name.find_last_not_of(" ") + 1);
-        
-        // Читаем длину
-        getline(ss, part, ',');
-        _length = stoi(part);
-        
-        // Читаем ширину  
-        getline(ss, part, ',');
-        _width = stoi(part);
-        
-        // Читаем статус
-        getline(ss, part);
-        _properties = stoi(part);
-        
-        cout << "Zagruzhena truba: " << _name << endl;
-    }
-
-    bool isLoaded() const {
-        return !_name.empty();
+    void loadFromFile(ifstream& in) {
+        getline(in >> ws, _name);
+        in >> _length;
+        in >> _width;
+        in >> _properties;
     }
 
 private:
@@ -129,43 +104,19 @@ public:
         }
     }
 
-    void saveToFile() {
-        if (!_name.empty()) {
-            ofstream out("data.txt", ios::app);
-            out << "KS: " << _name << ", " << _quantity << ", "
-                << _count_work << ", " << _station_class << endl;
-        }
+    void saveToFile(ofstream& out) {
+        out << "KS" << endl;
+        out << _name << endl;
+        out << _quantity << endl;
+        out << _count_work << endl;
+        out << _station_class << endl;
     }
 
-    void loadFromFile(const string& line) {
-        stringstream ss(line);
-        string part;
-        
-        // Парсим строку формата: "KS: nazvanie, 10, 5, 1"
-        getline(ss, part, ':'); // Пропускаем "KS"
-        getline(ss, part, ','); // Читаем название
-        _name = part;
-        // Убираем пробелы в начале и конце
-        _name.erase(0, _name.find_first_not_of(" "));
-        _name.erase(_name.find_last_not_of(" ") + 1);
-        
-        // Читаем количество цехов
-        getline(ss, part, ',');
-        _quantity = stoi(part);
-        
-        // Читаем цехи в работе  
-        getline(ss, part, ',');
-        _count_work = stoi(part);
-        
-        // Читаем статус
-        getline(ss, part);
-        _station_class = stoi(part);
-        
-        cout << "Zagruzhen KS: " << _name << endl;
-    }
-
-    bool isLoaded() const {
-        return !_name.empty();
+    void loadFromFile(ifstream& in) {
+        getline(in >> ws, _name);
+        in >> _quantity;
+        in >> _count_work;
+        in >> _station_class;
     }
 
 private:
@@ -174,24 +125,32 @@ private:
     bool _station_class;
 };
 
-void loadDataFromFile(Pipes& pipe, KS& ks) {
+void saveToFile(Pipes& pipe, KS& ks) {
+    ofstream out("data.txt");
+    pipe.saveToFile(out);
+    ks.saveToFile(out);
+    out.close();
+    cout << "Dannye sohraneny!" << endl;
+}
+
+void loadFromFile(Pipes& pipe, KS& ks) {
     ifstream in("data.txt");
     if (!in.is_open()) {
         cout << "File ne naiden!" << endl;
         return;
     }
     
-    string line;
-    while (getline(in, line)) {
-        if (line.find("Truba:") != string::npos) {
-            pipe.loadFromFile(line);
+    string type;
+    while (in >> type) {
+        if (type == "PIPE") {
+            pipe.loadFromFile(in);
         }
-        else if (line.find("KS:") != string::npos) {
-            ks.loadFromFile(line);
+        else if (type == "KS") {
+            ks.loadFromFile(in);
         }
     }
     in.close();
-    cout << "Zagruzka zavershena!" << endl;
+    cout << "Dannye zagruzheny!" << endl;
 }
 
 int main() {
@@ -204,7 +163,6 @@ int main() {
 
         switch (GetCorrectNumber(0, 7)) {
         case 0:
-            cout << "Vihod iz programmy..." << endl;
             return 0;
         case 1: 
             pipe.add(); 
@@ -213,9 +171,7 @@ int main() {
             ks.add(); 
             break;
         case 3: 
-            cout << "=== TRUBA ===" << endl;
             pipe.View(); 
-            cout << "=== KS ===" << endl;
             ks.View(); 
             break;
         case 4: 
@@ -225,16 +181,10 @@ int main() {
             ks.Edit(); 
             break;
         case 6:
-            // Очищаем файл перед сохранением
-            ofstream clear("data.txt", ios::trunc);
-            clear.close();
-            
-            pipe.saveToFile();
-            ks.saveToFile();
-            cout << "Dannye sohraneny" << endl;
+            saveToFile(pipe, ks);
             break;
         case 7: 
-            loadDataFromFile(pipe, ks); 
+            loadFromFile(pipe, ks);
             break;
         }
     }
